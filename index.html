@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Framewise - Storyboard Editor</title>
+<style>
+:root{--bg:#14161b;--panel:#1e222b;--edge:#2e3440;--txt:#e6e9ef;--dim:#8b93a3;--acc:#5b8cff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:14px/1.4 system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--edge);flex-wrap:wrap}
+header h1{font-size:16px;color:var(--acc)}
+header button{background:#2a3040;color:var(--txt);border:1px solid var(--edge);border-radius:6px;padding:6px 12px;cursor:pointer}
+header button:hover{background:#35405a}
+header .spacer{flex:1}
+main{flex:1;display:flex;overflow:hidden}
+#scenes{width:200px;background:var(--panel);border-right:1px solid var(--edge);padding:10px;overflow-y:auto}
+#scenes h2{font-size:12px;color:var(--dim);margin-bottom:8px}
+.scene-item{padding:8px;border-radius:6px;cursor:pointer;margin-bottom:4px}
+.scene-item.active{background:#2a3040}
+#stage{flex:1;overflow-y:auto;padding:16px}
+#panels{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.panel{background:var(--panel);border:1px solid var(--edge);border-radius:10px;overflow:hidden}
+.frame{position:relative;aspect-ratio:16/9;background:#000}
+.frame svg{width:100%;height:100%}
+.panel .tools{display:flex;gap:6px;padding:6px}
+.panel .tools button{flex:1;background:#2a3040;color:var(--txt);border:none;border-radius:4px;padding:4px;cursor:pointer;font-size:11px}
+.notes{width:100%;border:none;background:#14161b;color:var(--txt);padding:6px 8px;font:12px system-ui;border-top:1px solid var(--edge)}
+.chars{padding:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chars select,.chars input{background:#14161b;color:var(--txt);border:1px solid var(--edge);border-radius:4px;padding:3px;font-size:11px}
+label{font-size:11px;color:var(--dim)}
+</style>
+</head>
+<body>
+<header>
+<h1>Framewise</h1>
+<button onclick="addScene()">+ Scene</button>
+<button onclick="addPanel()">+ Panel (N)</button>
+<button onclick="exportPNG()">PNG (E)</button>
+<button onclick="printExport()">Print</button>
+<button onclick="openAnimatic()">Play (P)</button>
+<span class="spacer"></span>
+<span id="projName" style="color:var(--dim)"></span>
+</header>
+<main>
+<div id="scenes"><h2>Scenes</h2><div id="sceneList"></div></div>
+<div id="stage"><div id="panels"></div></div>
+</main>
+<div id="animatic" style="position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10">
+<canvas id="ac" width="1280" height="720"></canvas>
+<div style="display:flex;gap:10px;margin-top:16px">
+<button onclick="playAnimatic()">Play</button>
+<button onclick="recordAnimatic()">Record WebM</button>
+<button onclick="stopAll()">Close</button>
+</div>
+<div id="animating" style="color:#8b93a3;margin-top:10px"></div>
+</div>
+<script>
+let data = JSON.parse(localStorage.getItem('framewise') || 'null') || {project:'My Storyboard', scenes:[{name:'Scene 1', panels:[newPanel()]}]};
+let cur = 0;
+function save(){localStorage.setItem('framewise', JSON.stringify(data));}
+function newPanel(){return {chars:[], props:[], dialogue:'', action:'', dur:3, cam:'zoom'};}
+function esc(s){return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function renderScenes(){
+ const s=document.getElementById('sceneList'); s.innerHTML='';
+ data.scenes.forEach(function(sc,i){
+  const d=document.createElement('div'); d.className='scene-item'+(i===cur?' active':''); d.textContent=sc.name;
+  d.onclick=function(){cur=i;render();};
+  s.appendChild(d);
+ });
+}
+function charSVG(c){
+ const skin={pale:'#f2d3b3',tan:'#d9a066',brown:'#8d5524',dark:'#503335'}[c.skin]||'#d9a066';
+ const cloth=c.cloth||'#5b8cff';
+ const hair={black:'#222222',brown:'#5a3a1a',blond:'#e0c068',red:'#b5401f',none:'none'}[c.hair]||'#222222';
+ let body='';
+ if(c.pose==='sit'){body='<rect x="20" y="38" width="14" height="18" rx="5" fill="'+cloth+'"/><rect x="22" y="54" width="10" height="12" rx="4" fill="#333333"/><rect x="14" y="50" width="20" height="6" rx="3" fill="#333333"/>';}
+ else if(c.pose==='point'){body='<rect x="18" y="38" width="18" height="28" rx="7" fill="'+cloth+'"/><rect x="34" y="38" width="16" height="6" rx="3" fill="'+cloth+'"/><rect x="20" y="64" width="6" height="14" rx="3" fill="#333333"/><rect x="28" y="64" width="6" height="14" rx="3" fill="#333333"/>';}
+ else{body='<rect x="18" y="38" width="18" height="28" rx="7" fill="'+cloth+'"/><rect x="20" y="64" width="6" height="14" rx="3" fill="#333333"/><rect x="28" y="64" width="6" height="14" rx="3" fill="#333333"/>';}
+ let hairSVG = c.hair==='none'?'':'<path d="M22 16 q6 -8 12 0 q2 4 -2 4 q-4 -5 -8 0 q-4 0 -2 -4" fill="'+hair+'"/>';
+ return '<g transform="translate('+(c.x||60)+','+(c.y||30)+') scale('+(c.s||1)+')"><circle cx="28" cy="18" r="11" fill="'+skin+'"/>'+hairSVG+body+'</g>';
+}
+function propSVG(p){
+ if(p.type==='bubble') return '<g transform="translate('+(p.x||10)+','+(p.y||10)+')"><rect width="90" height="34" rx="10" fill="#ffffff" stroke="#999999"/><path d="M14 34 l6 10 l4 -10" fill="#ffffff" stroke="#999999"/><text x="10" y="21" font-size="11" fill="#000000">'+esc(p.text)+'</text></g>';
+ if(p.type==='arrow') return '<g transform="translate('+(p.x||120)+','+(p.y||40)+') rotate('+(p.rot||0)+')"><line x1="0" y1="0" x2="60" y2="0" stroke="#ff5b5b" stroke-width="4"/><polygon points="60,-7 74,0 60,7" fill="#ff5b5b"/></g>';
+ if(p.type==='bg') return '<rect x="0" y="0" width="160" height="90" fill="'+(p.color||'#1c2a44')+'"/>';
+ return '';
+}
+function panelSVG(p, scale){
+ scale = scale||1;
+ const els = p.props.filter(function(q){return q.type==='bg';}).map(propSVG).join('')
+  + p.chars.map(charSVG).join('')
+  + p.props.filter(function(q){return q.type!=='bg';}).map(propSVG).join('');
+ return '<svg viewBox="0 0 160 90" width="'+(160*scale)+'" height="'+(90*scale)+'" xmlns="http://www.w3.org/2000/svg">'+els+'</svg>';
+}
+function render(){
+ renderScenes();
+ const wrap=document.getElementById('panels'); wrap.innerHTML='';
+ data.scenes[cur].panels.forEach(function(p,i){
+  const d=document.createElement('div'); d.className='panel';
+  d.onclick=function(){window._sel=i;};
+  d.innerHTML='<div class="frame">'+panelSVG(p,1.75)+'</div>'
+  +'<div class="tools">'
+  +'<button onclick="event.stopPropagation();move('+i+',-1)"><-</button>'
+  +'<button onclick="event.stopPropagation();move('+i+',1)">-></button>'
+  +'<button onclick="event.stopPropagation();delPanel('+i+')">Delete</button>'
+  +'</div>'
+  +'<div class="chars">'
+  +'<button onclick="event.stopPropagation();addChar('+i+')">+ Character</button>'
+  +'<button onclick="event.stopPropagation();addProp('+i+','+"'bubble'"+')">+ Bubble</button>'
+  +'<button onclick="event.stopPropagation();addProp('+i+','+"'arrow'"+')">+ Arrow</button>'
+  +'<button onclick="event.stopPropagation();addProp('+i+','+"'bg'"+')">+ BG</button>'
+  +'</div>'
+  +'<div class="chars" id="pc-'+i+'"></div>'
+  +'<input class="notes" placeholder="Dialogue" value="'+esc(p.dialogue)+'" oninput="data.scenes['+cur+'].panels['+i+'].dialogue=this.value;save()">'
+  +'<input class="notes" placeholder="Action note" value="'+esc(p.action)+'" oninput="data.scenes['+cur+'].panels['+i+'].action=this.value;save()">'
+  +'<div class="chars"><label>Secs</label> <input type="number" min="1" max="15" value="'+(p.dur||3)+'" style="width:44px" onchange="data.scenes['+cur+'].panels['+i+'].dur=+this.value;save()">'
+  +'<select onchange="data.scenes['+cur+'].panels['+i+'].cam=this.value;save()">'
+  +['zoom','panL','panR'].map(function(c){return '<option '+(p.cam===c?'selected':'')+'>'+c+'</option>';}).join('')
+  +'</select></div>';
+  wrap.appendChild(d);
+  renderPanelChars(i);
+ });
+ document.getElementById('projName').textContent=data.project+' - '+data.scenes[cur].name;
+ save();
+}
+function renderPanelChars(i){
+ const box=document.getElementById('pc-'+i); if(!box)return;
+ data.scenes[cur].panels[i].chars.forEach(function(c,j){
+  const s=document.createElement('span');
+  s.innerHTML='<select onchange="setChar('+i+','+j+','+"'skin'"+',this.value)">'
+   +['pale','tan','brown','dark'].map(function(v){return '<option '+(c.skin===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select> '
+   +'<select onchange="setChar('+i+','+j+','+"'hair'"+',this.value)">'
+   +['black','brown','blond','red','none'].map(function(v){return '<option '+(c.hair===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select> '
+   +'<select onchange="setChar('+i+','+j+','+"'pose'"+',this.value)">'
+   +['stand','point','sit'].map(function(v){return '<option '+(c.pose===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select> '
+   +'<input type="color" value="'+(c.cloth||'#5b8cff')+'" onchange="setChar('+i+','+j+','+"'cloth'"+',this.value)" style="width:26px;padding:0"> '
+   +'<button onclick="data.scenes['+cur+'].panels['+i+'].chars.splice('+j+',1);save();render()">x</button>';
+  box.appendChild(s);
+ });
+}
+function setChar(i,j,k,v){data.scenes[cur].panels[i].chars[j][k]=v;save();render();}
+function addScene(){data.scenes.push({name:'Scene '+(data.scenes.length+1), panels:[newPanel()]});cur=data.scenes.length-1;render();}
+function addPanel(){data.scenes[cur].panels.push(newPanel());render();}
+function delPanel(i){data.scenes[cur].panels.splice(i,1);render();}
+function move(i,d){const a=data.scenes[cur].panels;const j=i+d;if(j<0||j>=a.length)return;const t=a[i];a[i]=a[j];a[j]=t;render();}
+function addChar(i){data.scenes[cur].panels[i].chars.push({skin:'tan',hair:'black',pose:'stand',cloth:'#5b8cff',x:40,y:20,s:1});render();}
+function addProp(i,t){data.scenes[cur].panels[i].props.push(t==='bg'?{type:'bg',color:'#1c2a44'}:{type:t});render();}
+function panelCanvas(p, W, H){
+ W=W||1280;H=H||720;
+ const c=document.createElement('canvas');c.width=W;c.height=H;
+ const ctx=c.getContext('2d');
+ ctx.fillStyle='#000000';ctx.fillRect(0,0,W,H);
+ const img=new Image();
+ return new Promise(function(res){
+  img.onload=function(){ctx.drawImage(img,0,0,W,H);res(c);};
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(panelSVG(p,1));
+ });
+}
+async function exportPNG(){
+ const i = window._sel || 0;
+ const p=data.scenes[cur].panels[i]; if(!p)return;
+ const c=await panelCanvas(p);
+ const a=document.createElement('a');a.download='panel.png';a.href=c.toDataURL();a.click();
+}
+function printExport(){
+ const w=window.open('','_blank');
+ w.document.write('<html><head><title>'+esc(data.project)+'</title></head><body style="font-family:sans-serif">');
+ data.scenes.forEach(function(sc){w.document.write('<h2>'+esc(sc.name)+'</h2>');
+  sc.panels.forEach(function(p){w.document.write('<div style="display:inline-block;margin:8px;vertical-align:top;width:300px">'+panelSVG(p,1.9)+'<p><b>'+esc(p.dialogue)+'</b><br>'+esc(p.action)+'</p></div>');});});
+ w.document.write('</body></html>');w.document.close();w.print();
+}
+let playing=false, rec=null, chunks=[];
+function openAnimatic(){document.getElementById('animatic').style.display='flex';playAnimatic();}
+function stopAll(){playing=false;document.getElementById('animatic').style.display='none';}
+async function playAnimatic(record){
+ const cv=document.getElementById('ac'), ctx=cv.getContext('2d');
+ const panels=data.scenes[cur].panels;
+ playing=true;
+ const stream=cv.captureStream(30);
+ if(record){
+  chunks=[];
+  rec=new MediaRecorder(stream,{mimeType:'video/webm'});
+  rec.ondataavailable=function(e){chunks.push(e.data);};
+  rec.onstop=function(){const b=new Blob(chunks,{type:'video/webm'});const a=document.createElement('a');a.download='framewise_animatic.webm';a.href=URL.createObjectURL(b);a.click();};
+  rec.start();
+ }
+ for(const p of panels){
+  if(!playing)break;
+  const c=await panelCanvas(p);
+  const t0p=performance.now(), dur=(p.dur||3)*1000;
+  await new Promise(function(resolve){
+   function step(){
+    const e=(performance.now()-t0p)/dur;
+    if(e>=1){resolve();return;}
+    const z=1+0.08*e;
+    let sx=0;
+    if(p.cam==='panL')sx=-40*e;
+    if(p.cam==='panR')sx=40*e;
+    ctx.save();
+    ctx.translate(640,360);ctx.scale(z,z);ctx.translate(-640+sx,-360);
+    ctx.drawImage(c,0,0);
+    ctx.restore();
+    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,650,1280,70);
+    ctx.fillStyle='#ffffff';ctx.font='28px system-ui';ctx.textAlign='center';
+    ctx.fillText(p.dialogue||'',640,690);
+    document.getElementById('animating').textContent='Playing '+data.scenes[cur].name;
+    requestAnimationFrame(step);
+   }
+   step();
+  });
+ }
+ if(record&&rec)rec.stop();
+ document.getElementById('animating').textContent=playing?'Done.'+(record?' WebM downloading.':''):'Stopped';
+ playing=false;
+}
+function recordAnimatic(){if(!playing)playAnimatic(true);}
+document.addEventListener('keydown',function(e){
+ if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+ const k=e.key.toLowerCase();
+ if(k==='n')addPanel();
+ if(k==='e')exportPNG();
+ if(k==='p')openAnimatic();
+ if(k==='escape')stopAll();
+});
+render();
+</script>
+</body>
+</html>
