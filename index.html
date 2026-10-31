@@ -1,229 +1,170 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Framewise - Storyboard Editor</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10131a">
+<title>Framewise | Storyboard Studio</title>
 <style>
-:root{--bg:#14161b;--panel:#1e222b;--edge:#2e3440;--txt:#e6e9ef;--dim:#8b93a3;--acc:#5b8cff}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font:14px/1.4 system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-header{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--edge);flex-wrap:wrap}
-header h1{font-size:16px;color:var(--acc)}
-header button{background:#2a3040;color:var(--txt);border:1px solid var(--edge);border-radius:6px;padding:6px 12px;cursor:pointer}
-header button:hover{background:#35405a}
-header .spacer{flex:1}
-main{flex:1;display:flex;overflow:hidden}
-#scenes{width:200px;background:var(--panel);border-right:1px solid var(--edge);padding:10px;overflow-y:auto}
-#scenes h2{font-size:12px;color:var(--dim);margin-bottom:8px}
-.scene-item{padding:8px;border-radius:6px;cursor:pointer;margin-bottom:4px}
-.scene-item.active{background:#2a3040}
-#stage{flex:1;overflow-y:auto;padding:16px}
-#panels{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.panel{background:var(--panel);border:1px solid var(--edge);border-radius:10px;overflow:hidden}
-.frame{position:relative;aspect-ratio:16/9;background:#000}
-.frame svg{width:100%;height:100%}
-.panel .tools{display:flex;gap:6px;padding:6px}
-.panel .tools button{flex:1;background:#2a3040;color:var(--txt);border:none;border-radius:4px;padding:4px;cursor:pointer;font-size:11px}
-.notes{width:100%;border:none;background:#14161b;color:var(--txt);padding:6px 8px;font:12px system-ui;border-top:1px solid var(--edge)}
-.chars{padding:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.chars select,.chars input{background:#14161b;color:var(--txt);border:1px solid var(--edge);border-radius:4px;padding:3px;font-size:11px}
-label{font-size:11px;color:var(--dim)}
+:root{color-scheme:dark;--bg:#10131a;--panel:#171b24;--panel2:#1d2330;--line:#2b3241;--ink:#edf1f7;--muted:#9aa5b7;--accent:#8c7bff;--accent2:#42d6c3;--danger:#ff7185;--shadow:0 18px 50px #05070b66}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;height:100vh;overflow:hidden}button,input,select,textarea{font:inherit;color:inherit}button{border:1px solid var(--line);background:#242b39;border-radius:8px;padding:7px 10px;cursor:pointer;transition:.15s}button:hover{border-color:#7469d6;background:#30384a}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}.danger{color:#ff9eaa}.quiet{background:transparent}.tiny{padding:4px 7px;font-size:11px}.topbar{height:58px;background:#151923;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;padding:0 16px}.brand{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:800;letter-spacing:-.4px;margin-right:10px}.mark{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:linear-gradient(135deg,#8c7bff,#42d6c3);color:#111322;font-size:17px}.topbar .spacer{flex:1}.project-name{font-weight:700;max-width:210px}.saved{font-size:11px;color:var(--muted);margin-right:8px}.key{font-size:10px;color:#bbc3d1;background:#151923;border:1px solid var(--line);border-radius:4px;padding:1px 5px}.app{height:calc(100vh - 58px);display:grid;grid-template-columns:218px minmax(450px,1fr) 270px}.sidebar{background:var(--panel);overflow:auto;padding:14px;border-right:1px solid var(--line)}.right{border-right:0;border-left:1px solid var(--line)}.section-title{display:flex;align-items:center;justify-content:space-between;color:#d9deea;font-weight:700;margin:9px 0 10px}.subtle{color:var(--muted);font-size:11px}.scene-row,.layer-row{display:flex;align-items:center;gap:7px;padding:7px;border-radius:8px;margin:3px 0;cursor:pointer;min-width:0}.scene-row:hover,.layer-row:hover{background:#222836}.scene-row.active,.layer-row.active{background:#302d4b;outline:1px solid #59538c}.scene-row .label,.layer-row .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}.scene-num{font-size:10px;color:#a7a1ff;width:20px}.scene-actions{display:flex;gap:5px;margin:9px 0 15px}.divider{height:1px;background:var(--line);margin:14px 0}.asset-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.asset{background:#1d2330;min-height:55px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:#dfe3ec}.asset .ico{font-size:18px}.asset.wide{grid-column:1/-1;min-height:36px;flex-direction:row}.center{overflow:auto;padding:16px 18px 28px;position:relative}.crumb{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--muted);font-size:12px}.crumb strong{color:var(--ink)}.canvas-shell{background:#0c0f15;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow)}.canvas-head{display:flex;justify-content:space-between;align-items:center;margin:0 1px 10px}.canvas-title{font-weight:700}.stage{width:100%;aspect-ratio:16/9;position:relative;background:#151922;border-radius:7px;overflow:hidden;touch-action:none}.stage canvas{width:100%;height:100%;display:block;cursor:default}.stage .hint{position:absolute;bottom:10px;left:12px;pointer-events:none;background:#11151ccc;color:#d8dbea;padding:5px 8px;border-radius:6px;font-size:10px}.under-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:10px}.under-tools .spacer{flex:1}.edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.field{display:flex;flex-direction:column;gap:4px;min-width:0}.field label{font-size:10px;color:var(--muted)}input,select,textarea{background:#11151d;border:1px solid var(--line);border-radius:7px;padding:7px 8px;outline:none;min-width:0}input:focus,select:focus,textarea:focus{border-color:#8c7bff}textarea{resize:vertical}.full{grid-column:1/-1}.strip-head{display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px}.filmstrip{display:flex;gap:9px;overflow:auto;padding:4px 2px 12px}.thumb{flex:0 0 180px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px;cursor:pointer}.thumb.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}.thumb canvas{width:100%;aspect-ratio:16/9;border-radius:5px;display:block;background:#111}.thumb-foot{display:flex;justify-content:space-between;gap:5px;align-items:center;margin-top:6px;font-size:10px;color:var(--muted)}.right .section-title{margin-top:8px}.control-row{display:flex;gap:6px;margin:6px 0}.control-row>*{flex:1}.swatches{display:flex;gap:5px;flex-wrap:wrap}.swatch{width:23px;height:23px;border:2px solid #fff2;border-radius:6px;padding:0}.layer-row{font-size:11px}.layer-icon{width:19px;text-align:center}.layer-buttons{display:flex;gap:5px;margin:8px 0}.mini-note{font-size:10px;line-height:1.5;color:var(--muted)}.table-wrap{display:none;position:fixed;inset:58px 0 0 0;background:var(--bg);z-index:5;padding:20px;overflow:auto}.table-wrap.open{display:block}.table-top{display:flex;align-items:center;gap:8px;margin-bottom:12px}.table-top .spacer{flex:1}table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:10px;overflow:hidden}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}th{color:#c5cddd;background:#202635;font-size:11px}td input,td select{width:100%;min-width:90px}.modal{position:fixed;inset:0;z-index:10;background:#07090dcf;display:none;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.player{width:min(1100px,96vw);background:#10131a;border:1px solid #393d4a;border-radius:14px;padding:15px;box-shadow:var(--shadow)}.player-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}.player-head strong{flex:1}.player canvas{width:100%;aspect-ratio:16/9;background:#050607;border-radius:8px;display:block}.player-foot{display:flex;align-items:center;gap:8px;padding-top:10px}.player-foot span{flex:1;color:var(--muted);font-size:11px}.empty{padding:12px;color:var(--muted);font-size:11px;text-align:center}.pill{border:1px solid var(--line);border-radius:99px;padding:3px 7px;color:var(--muted);font-size:10px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#252b39;padding:9px 14px;border-radius:8px;opacity:0;pointer-events:none;transition:.2s;z-index:20}.toast.show{opacity:1}.hide{display:none!important}.scene-input{width:100%;margin:5px 0}.mobile-menu{display:none}
+@media(max-width:1050px){.app{grid-template-columns:190px minmax(400px,1fr)}.right{display:none}.topbar{gap:6px;padding:0 9px}.topbar button{padding:6px}.brand{margin-right:2px}}
+@media(max-width:700px){body{height:auto;min-height:100vh;overflow:auto}.topbar{height:auto;min-height:55px;flex-wrap:wrap;padding:8px}.project-name,.saved{display:none}.app{height:auto;min-height:calc(100vh - 60px);display:block}.sidebar{border:0;border-bottom:1px solid var(--line);max-height:170px}.sidebar.left{display:flex;gap:14px;overflow:auto}.side-block{min-width:180px}.center{padding:12px}.thumb{flex-basis:145px}.edit-grid{grid-template-columns:1fr 1fr}.topbar button{font-size:11px}.stage .hint{display:none}}
+@media print{body{overflow:visible;background:#fff;color:#111}.topbar,.app,.table-wrap,.modal{display:none!important}body:after{content:'Use the dedicated print export';display:none}}
 </style>
 </head>
 <body>
-<header>
-<h1>Framewise</h1>
-<button onclick="addScene()">+ Scene</button>
-<button onclick="addPanel()">+ Panel (N)</button>
-<button onclick="exportPNG()">PNG (E)</button>
-<button onclick="printExport()">Print</button>
-<button onclick="openAnimatic()">Play (P)</button>
-<span class="spacer"></span>
-<span id="projName" style="color:var(--dim)"></span>
+<header class="topbar">
+  <div class="brand"><span class="mark">▧</span>Framewise</div><input id="projectTitle" class="project-name" aria-label="Project name" value="Untitled storyboard" style="border:0;background:transparent;padding:4px"><span id="saveStatus" class="saved">All changes saved</span>
+  <button class="primary" onclick="addPanel()">＋ Panel <span class="key">N</span></button><button onclick="toggleShotTable()">Shot table</button><button onclick="exportSelectedPNG()">PNG <span class="key">E</span></button><button onclick="printProject()">Print</button><button onclick="openPlayer()">Play <span class="key">P</span></button><span class="spacer"></span><button title="Save project JSON" onclick="downloadProject()">Save JSON</button><button title="Load project JSON" onclick="document.getElementById('loadFile').click()">Load JSON</button><input id="loadFile" type="file" accept="application/json,.json" class="hide">
 </header>
-<main>
-<div id="scenes"><h2>Scenes</h2><div id="sceneList"></div></div>
-<div id="stage"><div id="panels"></div></div>
+<main class="app">
+<aside class="sidebar left">
+ <div class="side-block"><div class="section-title"><span>Scenes</span><button class="tiny" onclick="addScene()">＋ Add</button></div><div id="sceneList"></div><div class="scene-actions"><button class="tiny" title="Move scene up" onclick="moveScene(-1)">↑</button><button class="tiny" title="Move scene down" onclick="moveScene(1)">↓</button><button class="tiny" onclick="renameScene()">Rename</button><button class="tiny danger" onclick="deleteScene()">Delete</button></div></div>
+ <div class="divider"></div><div class="side-block"><div class="section-title"><span>Asset library</span><span class="pill">Reusable</span></div>
+  <div class="subtle" style="margin-bottom:6px">CHARACTERS</div><div class="asset-grid">
+   <button class="asset" onclick="addAsset('character','standing')"><span class="ico">♙</span>Standing</button><button class="asset" onclick="addAsset('character','pointing')"><span class="ico">☝</span>Pointing</button><button class="asset" onclick="addAsset('character','sitting')"><span class="ico">♟</span>Sitting</button><button class="asset" onclick="addAsset('character','walking')"><span class="ico">🚶</span>Walking</button><button class="asset" onclick="addAsset('character','running')"><span class="ico">🏃</span>Running</button><button class="asset" onclick="addAsset('character','jumping')"><span class="ico">↟</span>Jumping</button><button class="asset wide" onclick="addAsset('character','arms crossed')">⊗ Arms crossed</button>
+  </div><div class="subtle" style="margin:12px 0 6px">PROPS & EFFECTS</div><div class="asset-grid">
+   <button class="asset" onclick="addAsset('prop','speech')"><span class="ico">▱</span>Speech</button><button class="asset" onclick="addAsset('prop','thought')"><span class="ico">☁</span>Thought</button><button class="asset" onclick="addAsset('prop','arrow')"><span class="ico">➜</span>Arrow</button><button class="asset" onclick="addAsset('prop','speed')"><span class="ico">≋</span>Speed lines</button><button class="asset" onclick="addAsset('prop','dust')"><span class="ico">✳</span>Dust cloud</button><button class="asset" onclick="addAsset('prop','star')"><span class="ico">✦</span>Impact</button>
+  </div><div class="subtle" style="margin:12px 0 6px">BACKGROUNDS</div><div class="asset-grid">
+   <button class="asset" onclick="addBackground('day')"><span class="ico">☀</span>Day sky</button><button class="asset" onclick="addBackground('night')"><span class="ico">☾</span>Night sky</button><button class="asset" onclick="addBackground('room')"><span class="ico">⌂</span>Interior</button><button class="asset" onclick="addBackground('street')"><span class="ico">▤</span>Street</button><button class="asset" onclick="addBackground('graveyard')"><span class="ico">†</span>Graveyard</button><button class="asset" onclick="addBackground('forest')"><span class="ico">♣</span>Forest</button><button class="asset wide" onclick="addBackground('plain')">◼ Plain color background</button>
+  </div></div>
+ <div class="divider"></div><div class="side-block"><div class="section-title">Script to board</div><textarea id="scriptBox" rows="5" placeholder="PANEL: A ghost appears at the gate&#10;PANEL: The wallet opens&#10;Lines without PANEL: are ignored"></textarea><button class="primary" style="width:100%;margin-top:7px" onclick="parseScript()">Create panels from script</button><p class="mini-note" style="margin-top:6px">Every line beginning with PANEL: becomes a new panel in this scene.</p></div>
+</aside>
+<section class="center">
+ <div class="crumb"><span id="sceneCrumb">Scene 1</span><span>›</span><strong id="panelCrumb">Panel 1</strong><span id="objectCrumb" class="pill">No selection</span></div>
+ <div class="canvas-shell"><div class="canvas-head"><span class="canvas-title">Storyboard canvas</span><span id="canvasDimensions" class="subtle">16:9 · drag objects to arrange</span></div>
+  <div class="stage" id="stage"><canvas id="board" width="960" height="540" aria-label="Storyboard panel canvas"></canvas><div class="hint">Select an element, drag to move. Corner handles resize. Top handle rotates.</div></div>
+  <div class="under-tools"><button class="tiny" onclick="duplicatePanel()">Duplicate panel</button><button class="tiny" onclick="movePanel(-1)">← Earlier</button><button class="tiny" onclick="movePanel(1)">Later →</button><button class="tiny danger" onclick="deletePanel()">Delete panel</button><span class="spacer"></span><button class="tiny" onclick="exportGridPNG()">Export storyboard grid</button><button class="tiny" onclick="exportCSV()">Shot table CSV</button></div>
+  <div class="edit-grid">
+   <div class="field"><label>Action note</label><input id="actionField" placeholder="What happens in this shot?"></div><div class="field"><label>Dialogue / caption</label><input id="dialogueField" placeholder="Spoken words or caption"></div>
+   <div class="field"><label>Shot size</label><select id="shotSize"><option>Medium</option><option>Extreme close-up</option><option>Close-up</option><option>Wide</option><option>Extreme wide</option><option>Two-shot</option><option>Insert</option></select></div>
+   <div class="field"><label>Camera angle</label><select id="shotAngle"><option>Eye-level</option><option>High</option><option>Low</option><option>Over-the-shoulder</option><option>POV</option><option>Dutch</option><option>Aerial</option><option>Top-down</option></select></div>
+   <div class="field"><label>Duration (seconds)</label><input id="durationField" type="number" min="0.5" max="60" step="0.5" value="3"></div>
+   <div class="field"><label>Camera motion</label><select id="cameraField"><option value="none">Static</option><option value="zoomIn">Slow zoom in</option><option value="zoomOut">Zoom out</option><option value="panLeft">Pan left</option><option value="panRight">Pan right</option></select></div>
+  </div>
+ </div>
+ <div class="strip-head"><strong>Panels in this scene</strong><span class="subtle" id="panelCount"></span></div><div id="filmstrip" class="filmstrip"></div>
+</section>
+<aside class="sidebar right">
+ <div class="section-title"><span>Inspector</span><span id="selectedKind" class="pill">Panel</span></div>
+ <div id="panelInspector">
+  <div class="field"><label>Background preset / color</label><select id="bgPreset"><option value="plain">Plain color</option><option value="day">Day sky</option><option value="night">Night sky</option><option value="room">Interior room</option><option value="street">Street</option><option value="graveyard">Graveyard</option><option value="forest">Forest</option></select></div>
+  <div class="control-row"><input type="color" id="bgColor" aria-label="Custom background color" value="#29374d"><button class="tiny" onclick="setBackground()">Set background</button></div>
+  <div class="divider"></div><div class="section-title"><span>Layers</span><span class="subtle">front to back</span></div><div id="layers"></div><div class="layer-buttons"><button class="tiny" onclick="layerMove(1)">Bring forward</button><button class="tiny" onclick="layerMove(-1)">Send back</button></div><button class="tiny danger" style="width:100%" onclick="deleteSelectedObject()">Delete selected layer</button>
+  <div class="divider"></div><div class="section-title">Object properties</div><div id="objectInspector" class="subtle">Select a character, prop, or background on the canvas.</div>
+ </div>
+ <div class="divider"></div><div class="section-title">Shortcuts</div><div class="mini-note"><b>N</b> new panel · <b>E</b> export selected PNG · <b>P</b> play animatic · <b>Esc</b> close overlay<br><br>Panel objects are stored as reusable, editable layers in this project.</div>
+</aside>
 </main>
-<div id="animatic" style="position:fixed;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10">
-<canvas id="ac" width="1280" height="720"></canvas>
-<div style="display:flex;gap:10px;margin-top:16px">
-<button onclick="playAnimatic()">Play</button>
-<button onclick="recordAnimatic()">Record WebM</button>
-<button onclick="stopAll()">Close</button>
-</div>
-<div id="animating" style="color:#8b93a3;margin-top:10px"></div>
-</div>
+<div id="shotTable" class="table-wrap"><div class="table-top"><strong>Shot table</strong><span class="subtle">Edit shot size, angle, dialogue and action in place.</span><span class="spacer"></span><button onclick="exportCSV()">Export CSV</button><button onclick="toggleShotTable()">Close <span class="key">Esc</span></button></div><div id="tableContent"></div></div>
+<div id="playerModal" class="modal"><div class="player"><div class="player-head"><strong>Animatic player</strong><span id="playerLabel" class="subtle"></span><button onclick="closePlayer()">Close <span class="key">Esc</span></button></div><canvas id="playerCanvas" width="1280" height="720"></canvas><div class="player-foot"><button class="primary" onclick="playAnimatic()">Play</button><button onclick="recordAnimatic()">Export WebM</button><button onclick="stopPlayback()">Stop</button><span id="playerStatus">Ready</span></div></div></div>
+<div id="toast" class="toast"></div>
 <script>
-let data = JSON.parse(localStorage.getItem('framewise') || 'null') || {project:'My Storyboard', scenes:[{name:'Scene 1', panels:[newPanel()]}]};
-let cur = 0;
-function save(){localStorage.setItem('framewise', JSON.stringify(data));}
-function newPanel(){return {chars:[], props:[], dialogue:'', action:'', dur:3, cam:'zoom'};}
-function esc(s){return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-function renderScenes(){
- const s=document.getElementById('sceneList'); s.innerHTML='';
- data.scenes.forEach(function(sc,i){
-  const d=document.createElement('div'); d.className='scene-item'+(i===cur?' active':''); d.textContent=sc.name;
-  d.onclick=function(){cur=i;render();};
-  s.appendChild(d);
- });
+'use strict';
+const STORE='framewise-v2-project';
+const defaultProject=()=>({version:2,title:'Untitled storyboard',scenes:[{id:id(),name:'Scene 1',panels:[newPanel()]}]});
+function id(){return Math.random().toString(36).slice(2,10)}
+function newPanel(){return {id:id(),action:'',dialogue:'',duration:3,camera:'none',shotSize:'Medium',shotAngle:'Eye-level',objects:[{id:id(),type:'background',preset:'day',color:'#92c9ed',x:0,y:0,w:960,h:540,rot:0,locked:true}]}}
+function loadStored(){try{let x=JSON.parse(localStorage.getItem(STORE)||'null');if(x&&x.scenes?.length)return normalizeProject(x)}catch(e){}try{let old=JSON.parse(localStorage.getItem('framewise')||'null');if(old?.scenes?.length){let p=defaultProject();p.title=old.project||p.title;p.scenes=old.scenes.map((s,si)=>({id:id(),name:s.name||'Scene '+(si+1),panels:(s.panels||[]).map(q=>{let n=newPanel();n.action=q.action||'';n.dialogue=q.dialogue||'';n.duration=q.dur||3;n.camera=({zoom:'zoomIn',panL:'panLeft',panR:'panRight'}[q.cam]||'none');n.objects=[{id:id(),type:'background',preset:'plain',color:'#263349',x:0,y:0,w:960,h:540,rot:0,locked:true},...(q.chars||[]).map(c=>({...makeCharacter(c.pose||'standing'),skin:c.skin||'tan',hair:c.hair||'short',cloth:c.cloth||'#5b8cff',x:(c.x||35)*5,y:(c.y||20)*5,w:150*(c.s||1),h:300*(c.s||1)})),...(q.props||[]).filter(a=>a.type!=='bg').map(a=>makeProp(a.type==='bubble'?'speech':a.type,a.text))];return n})}));return p}}catch(e){}return defaultProject()}
+function normalizeProject(p){p.version=2;p.title=p.title||p.project||'Untitled storyboard';p.scenes=(p.scenes||[]).map((s,i)=>({id:s.id||id(),name:s.name||'Scene '+(i+1),panels:(s.panels||[]).map(q=>{let n={...newPanel(),...q,id:q.id||id()};if(!Array.isArray(n.objects)){n.objects=[{id:id(),type:'background',preset:'plain',color:'#29374d',x:0,y:0,w:960,h:540,rot:0,locked:true}]}return n})}));if(!p.scenes.length)p.scenes=defaultProject().scenes;p.scenes.forEach(s=>{if(!s.panels.length)s.panels=[newPanel()]});return p}
+let project=loadStored(),sceneIndex=0,panelIndex=0,selectedId=null,saveTimer=0,playToken=0,mediaRecorder=null,mediaChunks=[];const $=s=>document.querySelector(s), board=$('#board'),ctx=board.getContext('2d');
+function scene(){return project.scenes[sceneIndex]}function panel(){return scene()?.panels[panelIndex]}function objs(){return panel()?.objects||[]}
+function save(){clearTimeout(saveTimer);$('#saveStatus').textContent='Saving…';saveTimer=setTimeout(()=>{try{localStorage.setItem(STORE,JSON.stringify(project));$('#saveStatus').textContent='Saved locally'}catch(e){$('#saveStatus').textContent='Local storage full';toast('Autosave failed. Download a JSON backup.')}},180)}
+function toast(msg){let t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const bgColors={day:'#90c9eb',night:'#101b3a',room:'#77675e',street:'#454b55',graveyard:'#24263a',forest:'#254936',plain:'#29374d'};
+function makeCharacter(pose='standing'){return {id:id(),type:'character',name:'Character',pose,skin:'#d7a47c',hair:'short',hairColor:'#292534',expression:'neutral',cloth:'#8275e8',x:390,y:180,w:150,h:300,rot:0}}
+function makeProp(kind='speech',text){let base={id:id(),type:'prop',kind,x:540,y:120,w:190,h:110,rot:0,color:'#fff0d6',text:text||'Your line here'};if(kind==='arrow'){base.x=490;base.y=340;base.w=180;base.h=55;base.color='#ff715f'}if(kind==='speed'||kind==='dust'||kind==='star'){base.x=560;base.y=300;base.w=180;base.h=100;base.color=kind==='star'?'#ffd166':'#f4edda'}if(kind==='thought'){base.text='A thought...'}return base}
+function getSceneBackground(o){return o.color||bgColors[o.preset]||'#29374d'}
+function drawBackground(c,o){let color=getSceneBackground(o);c.fillStyle=color;c.fillRect(0,0,960,540);const p=o.preset;
+ if(p==='day'){let g=c.createLinearGradient(0,0,0,540);g.addColorStop(0,'#77bce9');g.addColorStop(1,'#d2e8d7');c.fillStyle=g;c.fillRect(0,0,960,540);c.fillStyle='#ffe18a';c.beginPath();c.arc(790,105,48,0,7);c.fill();c.fillStyle='#6eaa73';c.fillRect(0,405,960,135);c.fillStyle='#88bf78';c.beginPath();c.ellipse(250,415,390,80,0,0,7);c.fill();}
+ else if(p==='night'){let g=c.createLinearGradient(0,0,0,540);g.addColorStop(0,'#111b3d');g.addColorStop(1,'#4c426e');c.fillStyle=g;c.fillRect(0,0,960,540);c.fillStyle='#f7e9ba';c.beginPath();c.arc(770,105,38,0,7);c.fill();c.fillStyle='#fff';for(let i=0;i<38;i++){let x=(i*173+31)%960,y=(i*97+19)%300;c.globalAlpha=.35+(i%4)*.15;c.fillRect(x,y,3,3)}c.globalAlpha=1;c.fillStyle='#1e2941';c.fillRect(0,428,960,112)}
+ else if(p==='room'){c.fillStyle='#887c74';c.fillRect(0,0,960,370);c.fillStyle='#554c49';c.fillRect(0,370,960,170);c.strokeStyle='#c4a993';c.lineWidth=5;c.strokeRect(80,75,220,200);c.beginPath();c.moveTo(190,75);c.lineTo(190,275);c.moveTo(80,175);c.lineTo(300,175);c.stroke();c.fillStyle='#3e3332';c.fillRect(660,115,150,255);c.fillStyle='#d9b975';c.fillRect(680,140,105,135)}
+ else if(p==='street'){c.fillStyle='#4b5261';c.fillRect(0,0,960,330);c.fillStyle='#2c3039';c.fillRect(0,330,960,210);c.fillStyle='#e3d3a0';for(let x=35;x<960;x+=145)c.fillRect(x,425,75,8);c.fillStyle='#6c7281';for(let x=10;x<960;x+=210){c.fillRect(x,150,115,180);c.fillStyle='#f4c66d';for(let y=170;y<300;y+=38)c.fillRect(x+18,y,20,18);c.fillStyle='#6c7281'}}
+ else if(p==='graveyard'){c.fillStyle='#262941';c.fillRect(0,0,960,540);c.fillStyle='#ded0a7';c.beginPath();c.arc(810,95,37,0,7);c.fill();c.fillStyle='#171c2b';c.fillRect(0,410,960,130);for(let i=0;i<6;i++){let x=70+i*155;c.fillStyle='#797b82';c.beginPath();c.moveTo(x,430);c.lineTo(x+8,350-(i%2)*25);c.quadraticCurveTo(x+45,330-(i%2)*25,x+68,350-(i%2)*25);c.lineTo(x+76,430);c.fill();c.strokeStyle='#4c4e57';c.lineWidth=4;c.strokeRect(x+10,365,56,66)}}
+ else if(p==='forest'){let g=c.createLinearGradient(0,0,0,540);g.addColorStop(0,'#4c7764');g.addColorStop(1,'#1d362e');c.fillStyle=g;c.fillRect(0,0,960,540);c.fillStyle='#345744';for(let i=0;i<7;i++){let x=i*155-30;c.fillRect(x+54,235,18,220);c.beginPath();c.moveTo(x+62,55);c.lineTo(x,290);c.lineTo(x+125,290);c.fill();c.beginPath();c.moveTo(x+62,115);c.lineTo(x-10,335);c.lineTo(x+135,335);c.fill()}c.fillStyle='#6c9a67';c.fillRect(0,445,960,95)}
 }
-function charSVG(c){
- const skin={pale:'#f2d3b3',tan:'#d9a066',brown:'#8d5524',dark:'#503335'}[c.skin]||'#d9a066';
- const cloth=c.cloth||'#5b8cff';
- const hair={black:'#222222',brown:'#5a3a1a',blond:'#e0c068',red:'#b5401f',none:'none'}[c.hair]||'#222222';
- let body='';
- if(c.pose==='sit'){body='<rect x="20" y="38" width="14" height="18" rx="5" fill="'+cloth+'"/><rect x="22" y="54" width="10" height="12" rx="4" fill="#333333"/><rect x="14" y="50" width="20" height="6" rx="3" fill="#333333"/>';}
- else if(c.pose==='point'){body='<rect x="18" y="38" width="18" height="28" rx="7" fill="'+cloth+'"/><rect x="34" y="38" width="16" height="6" rx="3" fill="'+cloth+'"/><rect x="20" y="64" width="6" height="14" rx="3" fill="#333333"/><rect x="28" y="64" width="6" height="14" rx="3" fill="#333333"/>';}
- else{body='<rect x="18" y="38" width="18" height="28" rx="7" fill="'+cloth+'"/><rect x="20" y="64" width="6" height="14" rx="3" fill="#333333"/><rect x="28" y="64" width="6" height="14" rx="3" fill="#333333"/>';}
- let hairSVG = c.hair==='none'?'':'<path d="M22 16 q6 -8 12 0 q2 4 -2 4 q-4 -5 -8 0 q-4 0 -2 -4" fill="'+hair+'"/>';
- return '<g transform="translate('+(c.x||60)+','+(c.y||30)+') scale('+(c.s||1)+')"><circle cx="28" cy="18" r="11" fill="'+skin+'"/>'+hairSVG+body+'</g>';
+function drawCharacter(c,o){c.save();c.translate(o.x+o.w/2,o.y+o.h/2);c.rotate((o.rot||0)*Math.PI/180);let sx=o.w/150,sy=o.h/300;c.scale(sx,sy);c.translate(-75,-150);
+ const skin=o.skin||'#d7a47c',cloth=o.cloth||'#8275e8',hair=o.hairColor||'#292534';let pose=o.pose||'standing';
+ // shadow
+ c.fillStyle='#10131a55';c.beginPath();c.ellipse(75,286,47,10,0,0,7);c.fill();
+ // legs, stylized pose variants
+ c.lineCap='round';c.lineJoin='round';c.strokeStyle='#283044';c.lineWidth=17;
+ if(pose==='sitting'){c.beginPath();c.moveTo(65,206);c.lineTo(47,245);c.lineTo(88,249);c.lineTo(101,273);c.moveTo(91,209);c.lineTo(109,243);c.lineTo(144,247);c.stroke()}
+ else if(pose==='running'||pose==='walking'||pose==='jumping'){let amt=pose==='running'?35:pose==='jumping'?48:15;c.beginPath();c.moveTo(66,205);c.lineTo(55-amt,242);c.lineTo(31-amt,270);c.moveTo(88,205);c.lineTo(105+amt,237);c.lineTo(127+amt,257);c.stroke()}
+ else{c.beginPath();c.moveTo(66,203);c.lineTo(61,267);c.moveTo(87,203);c.lineTo(94,267);c.stroke()}
+ // torso
+ c.fillStyle=cloth;c.beginPath();c.roundRect(43,103,66,112,20);c.fill();
+ if(pose==='arms crossed'){c.strokeStyle=skin;c.lineWidth=15;c.beginPath();c.moveTo(48,128);c.lineTo(100,159);c.lineTo(53,166);c.moveTo(106,128);c.lineTo(59,157);c.lineTo(105,166);c.stroke()}
+ else if(pose==='pointing'){c.strokeStyle=skin;c.lineWidth=14;c.beginPath();c.moveTo(48,126);c.lineTo(28,170);c.moveTo(103,126);c.lineTo(142,103);c.lineTo(167,103);c.stroke()}
+ else {c.strokeStyle=skin;c.lineWidth=14;c.beginPath();if(pose==='jumping'||pose==='running'){c.moveTo(47,126);c.lineTo(18,103);c.moveTo(105,126);c.lineTo(134,101)}else{c.moveTo(48,126);c.lineTo(31,185);c.moveTo(104,126);c.lineTo(119,184)}c.stroke()}
+ // neck and head
+ c.fillStyle=skin;c.fillRect(67,85,19,25);c.beginPath();c.ellipse(76,65,34,39,0,0,7);c.fill();
+ // ears
+ c.beginPath();c.ellipse(43,67,7,11,0,0,7);c.ellipse(109,67,7,11,0,0,7);c.fill();
+ // hairstyles
+ c.fillStyle=hair;if(o.hair!=='bald'){if(o.hair==='long'){c.beginPath();c.ellipse(76,48,38,27,0,Math.PI,Math.PI*2);c.fill();c.fillRect(39,49,12,80);c.fillRect(101,50,13,84)}else if(o.hair==='curly'){for(let i=0;i<7;i++){c.beginPath();c.arc(47+i*10,41+(i%2)*-6,13,0,7);c.fill()} }else if(o.hair==='mohawk'){c.beginPath();c.moveTo(57,38);c.lineTo(68,8);c.lineTo(81,34);c.lineTo(97,5);c.lineTo(102,43);c.fill()}else{c.beginPath();c.ellipse(76,43,36,24,0,Math.PI,Math.PI*2);c.fill();c.beginPath();c.moveTo(42,48);c.quadraticCurveTo(69,39,94,49);c.lineTo(102,60);c.lineTo(47,61);c.fill()}}
+ // face expression
+ c.fillStyle='#20232c';c.strokeStyle='#20232c';c.lineWidth=3;c.lineCap='round';let expr=o.expression||'neutral';
+ if(expr==='angry'){c.beginPath();c.moveTo(56,56);c.lineTo(68,60);c.moveTo(84,60);c.lineTo(96,56);c.stroke()}else if(expr==='sad'||expr==='scared'){c.beginPath();c.moveTo(56,58);c.lineTo(68,55);c.moveTo(84,55);c.lineTo(96,58);c.stroke()}else{c.beginPath();c.arc(62,59,2.6,0,7);c.arc(90,59,2.6,0,7);c.fill()}
+ c.beginPath();if(expr==='happy'){c.arc(76,77,11,.15*Math.PI,.85*Math.PI);c.stroke()}else if(expr==='sad'||expr==='scared'){c.arc(76,91,9,1.15*Math.PI,1.85*Math.PI);c.stroke()}else if(expr==='angry'){c.moveTo(67,82);c.lineTo(85,82);c.stroke()}else if(expr==='surprised'){c.beginPath();c.ellipse(76,82,5,7,0,0,7);c.fill()}else{c.moveTo(68,82);c.lineTo(84,82);c.stroke()}
+ if(expr==='scared'||expr==='surprised'){c.fillStyle='#8bd9ff';c.beginPath();c.ellipse(108,81,5,10,0,0,7);c.fill()}
+ c.restore()}
+function drawProp(c,o){c.save();c.translate(o.x+o.w/2,o.y+o.h/2);c.rotate((o.rot||0)*Math.PI/180);c.translate(-o.w/2,-o.h/2);const k=o.kind;
+ if(k==='speech'||k==='thought'){c.fillStyle=o.color||'#fff0d6';c.strokeStyle='#34303a';c.lineWidth=4;c.beginPath();if(k==='speech'){c.roundRect(4,4,o.w-8,o.h-20,18);c.moveTo(32,o.h-20);c.lineTo(20,o.h-3);c.lineTo(58,o.h-20)}else{c.ellipse(o.w/2,o.h/2-8,o.w/2-6,o.h/2-18,0,0,7);c.ellipse(33,o.h-11,8,6,0,0,7);c.ellipse(16,o.h-1,4,3,0,0,7)}c.fill();c.stroke();c.fillStyle='#242530';c.font='600 21px system-ui';c.textAlign='center';c.textBaseline='middle';wrapText(c,o.text||'',o.w/2,k==='speech'?(o.h-12)/2:(o.h-16)/2,o.w-28,24,3)}
+ else if(k==='arrow'){c.strokeStyle=o.color||'#ff715f';c.fillStyle=o.color||'#ff715f';c.lineWidth=10;c.lineCap='round';c.beginPath();c.moveTo(12,o.h/2);c.lineTo(o.w-28,o.h/2);c.stroke();c.beginPath();c.moveTo(o.w-35,o.h/2-22);c.lineTo(o.w-8,o.h/2);c.lineTo(o.w-35,o.h/2+22);c.closePath();c.fill()}
+ else if(k==='speed'){c.strokeStyle=o.color||'#f4edda';c.lineWidth=5;for(let i=0;i<6;i++){let y=15+i*15;c.beginPath();c.moveTo(0,y);c.lineTo(o.w*(.56+(i%3)*.14),y-8);c.stroke()}}
+ else if(k==='dust'){c.fillStyle=o.color||'#e8d7b5';for(let i=0;i<9;i++){let x=(i*47)%o.w,y=18+(i*31)%(o.h-24);c.globalAlpha=.35+(i%3)*.16;c.beginPath();c.arc(x,y,12+i%4*4,0,7);c.fill()}c.globalAlpha=1}
+ else if(k==='star'){c.fillStyle=o.color||'#ffd166';c.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,r=i%2?o.h*.2:o.h*.48;c.lineTo(o.w/2+Math.cos(a)*r,o.h/2+Math.sin(a)*r)}c.closePath();c.fill()}
+ c.restore()}
+function wrapText(c,text,x,y,maxW,lineH,maxLines){let words=String(text).split(/\s+/),lines=[],line='';words.forEach(w=>{let test=line?line+' '+w:w;if(c.measureText(test).width>maxW&&line){lines.push(line);line=w}else line=test});if(line)lines.push(line);lines=lines.slice(0,maxLines||4);lines.forEach((t,i)=>c.fillText(t,x,y+(i-(lines.length-1)/2)*lineH))}
+function drawObject(c,o){if(o.type==='background')drawBackground(c,o);else if(o.type==='character')drawCharacter(c,o);else drawProp(c,o)}
+function renderCanvas(target=ctx,p=panel(),handles=false){if(!p)return;target.clearRect(0,0,960,540);target.fillStyle='#10131a';target.fillRect(0,0,960,540);p.objects.forEach(o=>drawObject(target,o));if(handles){let o=objs().find(x=>x.id===selectedId);if(o){target.save();target.translate(o.x+o.w/2,o.y+o.h/2);target.rotate((o.rot||0)*Math.PI/180);target.strokeStyle='#d6ceff';target.lineWidth=2;target.setLineDash([7,4]);target.strokeRect(-o.w/2,-o.h/2,o.w,o.h);target.setLineDash([]);[[ -o.w/2,-o.h/2],[o.w/2,-o.h/2],[-o.w/2,o.h/2],[o.w/2,o.h/2]].forEach(([x,y])=>{target.fillStyle='#fff';target.strokeStyle='#7669e5';target.lineWidth=2;target.fillRect(x-6,y-6,12,12);target.strokeRect(x-6,y-6,12,12)});target.beginPath();target.moveTo(0,-o.h/2);target.lineTo(0,-o.h/2-27);target.strokeStyle='#a39aff';target.beginPath();target.arc(0,-o.h/2-31,7,0,7);target.fillStyle='#a39aff';target.fill();target.restore()}}}
+function renderThumbs(){let strip=$('#filmstrip');strip.innerHTML='';scene().panels.forEach((p,i)=>{let d=document.createElement('div');d.className='thumb'+(i===panelIndex?' active':'');d.innerHTML='<canvas width="960" height="540"></canvas><div class="thumb-foot"><span>Panel '+(i+1)+'</span><span>'+esc(p.shotSize||'Medium')+'</span></div>';let tc=d.querySelector('canvas').getContext('2d');renderCanvas(tc,p,false);d.onclick=()=>{panelIndex=i;selectedId=null;render()};strip.appendChild(d)});$('#panelCount').textContent=scene().panels.length+' panels'}
+function renderScenes(){let l=$('#sceneList');l.innerHTML='';project.scenes.forEach((s,i)=>{let d=document.createElement('div');d.className='scene-row'+(i===sceneIndex?' active':'');d.innerHTML='<span class="scene-num">'+String(i+1).padStart(2,'0')+'</span><span class="label">'+esc(s.name)+'</span><span class="subtle">'+s.panels.length+'</span>';d.onclick=()=>{sceneIndex=i;panelIndex=0;selectedId=null;render()};l.appendChild(d)})}
+function renderLayers(){let l=$('#layers');l.innerHTML='';let sorted=[...objs()].reverse();if(!sorted.length){l.innerHTML='<div class="empty">No layers</div>';return}sorted.forEach(o=>{let d=document.createElement('div');d.className='layer-row'+(o.id===selectedId?' active':'');let label=o.type==='character'?(o.name||'Character')+' · '+(o.pose||'standing'):o.type==='background'?'Background · '+(o.preset||'plain'):(o.kind||'Prop');d.innerHTML='<span class="layer-icon">'+(o.type==='character'?'♙':o.type==='background'?'▧':'◇')+'</span><span class="label">'+esc(label)+'</span>';d.onclick=()=>{selectedId=o.id;renderInspector();renderCanvas(ctx,panel(),true);renderLayers()};l.appendChild(d)})}
+function renderInspector(){let o=objs().find(x=>x.id===selectedId),box=$('#objectInspector');$('#selectedKind').textContent=o?o.type[0].toUpperCase()+o.type.slice(1):'Panel';$('#objectCrumb').textContent=o?(o.name||o.kind||o.preset||o.type):'No selection';if(!o){box.innerHTML='Select a character, prop, or background on the canvas.';return}
+ let html='<div class="edit-grid">';html+='<div class="field full"><label>Layer name</label><input id="objName" value="'+esc(o.name||'')+'" placeholder="Name this asset"></div>';
+ if(o.type==='character'){html+='<div class="field"><label>Pose</label><select id="objPose">'+['standing','pointing','sitting','walking','running','jumping','arms crossed'].map(v=>'<option '+(o.pose===v?'selected':'')+'>'+v+'</option>').join('')+'</select></div><div class="field"><label>Expression</label><select id="objExpr">'+['happy','sad','angry','scared','surprised','neutral'].map(v=>'<option '+(o.expression===v?'selected':'')+'>'+v+'</option>').join('')+'</select></div><div class="field"><label>Hairstyle</label><select id="objHair">'+['short','long','curly','mohawk','bald'].map(v=>'<option '+(o.hair===v?'selected':'')+'>'+v+'</option>').join('')+'</select></div><div class="field"><label>Hair color</label><input id="objHairColor" type="color" value="'+(o.hairColor||'#292534')+'"></div><div class="field"><label>Skin</label><input id="objSkin" type="color" value="'+(o.skin||'#d7a47c')+'"></div><div class="field"><label>Clothes</label><input id="objCloth" type="color" value="'+(o.cloth||'#8275e8')+'"></div>'}
+ if(o.type==='prop'){html+='<div class="field full"><label>Prop text</label><textarea id="objText" rows="2">'+esc(o.text||'')+'</textarea></div><div class="field"><label>Prop type</label><select id="objKind">'+['speech','thought','arrow','speed','dust','star'].map(v=>'<option '+(o.kind===v?'selected':'')+'>'+v+'</option>').join('')+'</select></div><div class="field"><label>Color</label><input id="objColor" type="color" value="'+(o.color||'#fff0d6')+'"></div>'}
+ html+='<div class="field"><label>Rotation (degrees)</label><input id="objRot" type="number" value="'+(o.rot||0)+'"></div><div class="field"><label>Size</label><div class="control-row" style="margin:0"><input id="objW" type="number" min="20" value="'+Math.round(o.w)+'" aria-label="Width"><input id="objH" type="number" min="20" value="'+Math.round(o.h)+'" aria-label="Height"></div></div><div class="field full"><label>Position</label><div class="control-row" style="margin:0"><input id="objX" type="number" value="'+Math.round(o.x)+'" aria-label="X position"><input id="objY" type="number" value="'+Math.round(o.y)+'" aria-label="Y position"></div></div></div>';
+ box.innerHTML=html;let bind=(sel,key,cast=v=>v)=>{let el=$(sel);if(el)el.addEventListener('input',()=>{o[key]=cast(el.value);renderCanvas(ctx,panel(),true);save()})};bind('#objName','name');bind('#objPose','pose');bind('#objExpr','expression');bind('#objHair','hair');bind('#objHairColor','hairColor');bind('#objSkin','skin');bind('#objCloth','cloth');bind('#objText','text');bind('#objKind','kind');bind('#objColor','color');bind('#objRot','rot',Number);bind('#objW','w',Number);bind('#objH','h',Number);bind('#objX','x',Number);bind('#objY','y',Number)
 }
-function propSVG(p){
- if(p.type==='bubble') return '<g transform="translate('+(p.x||10)+','+(p.y||10)+')"><rect width="90" height="34" rx="10" fill="#ffffff" stroke="#999999"/><path d="M14 34 l6 10 l4 -10" fill="#ffffff" stroke="#999999"/><text x="10" y="21" font-size="11" fill="#000000">'+esc(p.text)+'</text></g>';
- if(p.type==='arrow') return '<g transform="translate('+(p.x||120)+','+(p.y||40)+') rotate('+(p.rot||0)+')"><line x1="0" y1="0" x2="60" y2="0" stroke="#ff5b5b" stroke-width="4"/><polygon points="60,-7 74,0 60,7" fill="#ff5b5b"/></g>';
- if(p.type==='bg') return '<rect x="0" y="0" width="160" height="90" fill="'+(p.color||'#1c2a44')+'"/>';
- return '';
-}
-function panelSVG(p, scale){
- scale = scale||1;
- const els = p.props.filter(function(q){return q.type==='bg';}).map(propSVG).join('')
-  + p.chars.map(charSVG).join('')
-  + p.props.filter(function(q){return q.type!=='bg';}).map(propSVG).join('');
- return '<svg viewBox="0 0 160 90" width="'+(160*scale)+'" height="'+(90*scale)+'" xmlns="http://www.w3.org/2000/svg">'+els+'</svg>';
-}
-function render(){
- renderScenes();
- const wrap=document.getElementById('panels'); wrap.innerHTML='';
- data.scenes[cur].panels.forEach(function(p,i){
-  const d=document.createElement('div'); d.className='panel';
-  d.onclick=function(){window._sel=i;};
-  d.innerHTML='<div class="frame">'+panelSVG(p,1.75)+'</div>'
-  +'<div class="tools">'
-  +'<button onclick="event.stopPropagation();move('+i+',-1)"><-</button>'
-  +'<button onclick="event.stopPropagation();move('+i+',1)">-></button>'
-  +'<button onclick="event.stopPropagation();delPanel('+i+')">Delete</button>'
-  +'</div>'
-  +'<div class="chars">'
-  +'<button onclick="event.stopPropagation();addChar('+i+')">+ Character</button>'
-  +'<button onclick="event.stopPropagation();addProp('+i+','+"'bubble'"+')">+ Bubble</button>'
-  +'<button onclick="event.stopPropagation();addProp('+i+','+"'arrow'"+')">+ Arrow</button>'
-  +'<button onclick="event.stopPropagation();addProp('+i+','+"'bg'"+')">+ BG</button>'
-  +'</div>'
-  +'<div class="chars" id="pc-'+i+'"></div>'
-  +'<input class="notes" placeholder="Dialogue" value="'+esc(p.dialogue)+'" oninput="data.scenes['+cur+'].panels['+i+'].dialogue=this.value;save()">'
-  +'<input class="notes" placeholder="Action note" value="'+esc(p.action)+'" oninput="data.scenes['+cur+'].panels['+i+'].action=this.value;save()">'
-  +'<div class="chars"><label>Secs</label> <input type="number" min="1" max="15" value="'+(p.dur||3)+'" style="width:44px" onchange="data.scenes['+cur+'].panels['+i+'].dur=+this.value;save()">'
-  +'<select onchange="data.scenes['+cur+'].panels['+i+'].cam=this.value;save()">'
-  +['zoom','panL','panR'].map(function(c){return '<option '+(p.cam===c?'selected':'')+'>'+c+'</option>';}).join('')
-  +'</select></div>';
-  wrap.appendChild(d);
-  renderPanelChars(i);
- });
- document.getElementById('projName').textContent=data.project+' - '+data.scenes[cur].name;
- save();
-}
-function renderPanelChars(i){
- const box=document.getElementById('pc-'+i); if(!box)return;
- data.scenes[cur].panels[i].chars.forEach(function(c,j){
-  const s=document.createElement('span');
-  s.innerHTML='<select onchange="setChar('+i+','+j+','+"'skin'"+',this.value)">'
-   +['pale','tan','brown','dark'].map(function(v){return '<option '+(c.skin===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select> '
-   +'<select onchange="setChar('+i+','+j+','+"'hair'"+',this.value)">'
-   +['black','brown','blond','red','none'].map(function(v){return '<option '+(c.hair===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select> '
-   +'<select onchange="setChar('+i+','+j+','+"'pose'"+',this.value)">'
-   +['stand','point','sit'].map(function(v){return '<option '+(c.pose===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select> '
-   +'<input type="color" value="'+(c.cloth||'#5b8cff')+'" onchange="setChar('+i+','+j+','+"'cloth'"+',this.value)" style="width:26px;padding:0"> '
-   +'<button onclick="data.scenes['+cur+'].panels['+i+'].chars.splice('+j+',1);save();render()">x</button>';
-  box.appendChild(s);
- });
-}
-function setChar(i,j,k,v){data.scenes[cur].panels[i].chars[j][k]=v;save();render();}
-function addScene(){data.scenes.push({name:'Scene '+(data.scenes.length+1), panels:[newPanel()]});cur=data.scenes.length-1;render();}
-function addPanel(){data.scenes[cur].panels.push(newPanel());render();}
-function delPanel(i){data.scenes[cur].panels.splice(i,1);render();}
-function move(i,d){const a=data.scenes[cur].panels;const j=i+d;if(j<0||j>=a.length)return;const t=a[i];a[i]=a[j];a[j]=t;render();}
-function addChar(i){data.scenes[cur].panels[i].chars.push({skin:'tan',hair:'black',pose:'stand',cloth:'#5b8cff',x:40,y:20,s:1});render();}
-function addProp(i,t){data.scenes[cur].panels[i].props.push(t==='bg'?{type:'bg',color:'#1c2a44'}:{type:t});render();}
-function panelCanvas(p, W, H){
- W=W||1280;H=H||720;
- const c=document.createElement('canvas');c.width=W;c.height=H;
- const ctx=c.getContext('2d');
- ctx.fillStyle='#000000';ctx.fillRect(0,0,W,H);
- const img=new Image();
- return new Promise(function(res){
-  img.onload=function(){ctx.drawImage(img,0,0,W,H);res(c);};
-  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(panelSVG(p,1));
- });
-}
-async function exportPNG(){
- const i = window._sel || 0;
- const p=data.scenes[cur].panels[i]; if(!p)return;
- const c=await panelCanvas(p);
- const a=document.createElement('a');a.download='panel.png';a.href=c.toDataURL();a.click();
-}
-function printExport(){
- const w=window.open('','_blank');
- w.document.write('<html><head><title>'+esc(data.project)+'</title></head><body style="font-family:sans-serif">');
- data.scenes.forEach(function(sc){w.document.write('<h2>'+esc(sc.name)+'</h2>');
-  sc.panels.forEach(function(p){w.document.write('<div style="display:inline-block;margin:8px;vertical-align:top;width:300px">'+panelSVG(p,1.9)+'<p><b>'+esc(p.dialogue)+'</b><br>'+esc(p.action)+'</p></div>');});});
- w.document.write('</body></html>');w.document.close();w.print();
-}
-let playing=false, rec=null, chunks=[];
-function openAnimatic(){document.getElementById('animatic').style.display='flex';playAnimatic();}
-function stopAll(){playing=false;document.getElementById('animatic').style.display='none';}
-async function playAnimatic(record){
- const cv=document.getElementById('ac'), ctx=cv.getContext('2d');
- const panels=data.scenes[cur].panels;
- playing=true;
- const stream=cv.captureStream(30);
- if(record){
-  chunks=[];
-  rec=new MediaRecorder(stream,{mimeType:'video/webm'});
-  rec.ondataavailable=function(e){chunks.push(e.data);};
-  rec.onstop=function(){const b=new Blob(chunks,{type:'video/webm'});const a=document.createElement('a');a.download='framewise_animatic.webm';a.href=URL.createObjectURL(b);a.click();};
-  rec.start();
- }
- for(const p of panels){
-  if(!playing)break;
-  const c=await panelCanvas(p);
-  const t0p=performance.now(), dur=(p.dur||3)*1000;
-  await new Promise(function(resolve){
-   function step(){
-    const e=(performance.now()-t0p)/dur;
-    if(e>=1){resolve();return;}
-    const z=1+0.08*e;
-    let sx=0;
-    if(p.cam==='panL')sx=-40*e;
-    if(p.cam==='panR')sx=40*e;
-    ctx.save();
-    ctx.translate(640,360);ctx.scale(z,z);ctx.translate(-640+sx,-360);
-    ctx.drawImage(c,0,0);
-    ctx.restore();
-    ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,650,1280,70);
-    ctx.fillStyle='#ffffff';ctx.font='28px system-ui';ctx.textAlign='center';
-    ctx.fillText(p.dialogue||'',640,690);
-    document.getElementById('animating').textContent='Playing '+data.scenes[cur].name;
-    requestAnimationFrame(step);
-   }
-   step();
-  });
- }
- if(record&&rec)rec.stop();
- document.getElementById('animating').textContent=playing?'Done.'+(record?' WebM downloading.':''):'Stopped';
- playing=false;
-}
-function recordAnimatic(){if(!playing)playAnimatic(true);}
-document.addEventListener('keydown',function(e){
- if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
- const k=e.key.toLowerCase();
- if(k==='n')addPanel();
- if(k==='e')exportPNG();
- if(k==='p')openAnimatic();
- if(k==='escape')stopAll();
-});
-render();
+function fillPanelFields(){let p=panel();if(!p)return;$('#actionField').value=p.action||'';$('#dialogueField').value=p.dialogue||'';$('#durationField').value=p.duration||3;$('#cameraField').value=p.camera||'none';$('#shotSize').value=p.shotSize||'Medium';$('#shotAngle').value=p.shotAngle||'Eye-level';$('#sceneCrumb').textContent=scene().name;$('#panelCrumb').textContent='Panel '+(panelIndex+1);$('#projectTitle').value=project.title;$('#bgPreset').value=objs().find(o=>o.type==='background')?.preset||'plain';$('#bgColor').value=getSceneBackground(objs().find(o=>o.type==='background')||{});$('#playerLabel').textContent=scene().name+' · '+scene().panels.length+' panels'}
+function render(){if(!project.scenes.length)project=defaultProject();sceneIndex=Math.max(0,Math.min(sceneIndex,project.scenes.length-1));if(!scene().panels.length)scene().panels.push(newPanel());panelIndex=Math.max(0,Math.min(panelIndex,scene().panels.length-1));renderScenes();fillPanelFields();renderCanvas(ctx,panel(),true);renderThumbs();renderLayers();renderInspector();save()}
+function addScene(){project.scenes.push({id:id(),name:'Scene '+(project.scenes.length+1),panels:[newPanel()]});sceneIndex=project.scenes.length-1;panelIndex=0;selectedId=null;render()}
+function renameScene(){let s=scene(),n=prompt('Scene name',s.name);if(n&&n.trim()){s.name=n.trim();render()}}
+function deleteScene(){if(project.scenes.length===1){toast('Keep at least one scene');return}if(!confirm('Delete '+scene().name+' and its panels?'))return;project.scenes.splice(sceneIndex,1);sceneIndex=Math.max(0,sceneIndex-1);panelIndex=0;render()}
+function moveScene(d){let j=sceneIndex+d;if(j<0||j>=project.scenes.length)return;[project.scenes[sceneIndex],project.scenes[j]]=[project.scenes[j],project.scenes[sceneIndex]];sceneIndex=j;render()}
+function addPanel(){scene().panels.push(newPanel());panelIndex=scene().panels.length-1;selectedId=null;render()}
+function duplicatePanel(){let p=JSON.parse(JSON.stringify(panel()));p.id=id();p.objects=p.objects.map(o=>({...o,id:id(),x:o.type==='background'?0:o.x+16,y:o.type==='background'?0:o.y+12}));scene().panels.splice(panelIndex+1,0,p);panelIndex++;selectedId=null;render()}
+function deletePanel(){if(scene().panels.length===1){toast('Keep at least one panel in each scene');return}scene().panels.splice(panelIndex,1);panelIndex=Math.max(0,panelIndex-1);selectedId=null;render()}
+function movePanel(d){let j=panelIndex+d;if(j<0||j>=scene().panels.length)return;[scene().panels[panelIndex],scene().panels[j]]=[scene().panels[j],scene().panels[panelIndex]];panelIndex=j;render()}
+function addAsset(type,value){let o=type==='character'?makeCharacter(value):makeProp(value);panel().objects.push(o);selectedId=o.id;render()}
+function addBackground(preset){let old=objs().find(o=>o.type==='background');if(old){old.preset=preset;old.color=bgColors[preset];selectedId=old.id}else{let o={id:id(),type:'background',preset,color:bgColors[preset],x:0,y:0,w:960,h:540,rot:0,locked:true};panel().objects.unshift(o);selectedId=o.id}render()}
+function setBackground(){let p=$('#bgPreset').value,color=$('#bgColor').value,old=objs().find(o=>o.type==='background');if(old){old.preset=p;old.color=color}else panel().objects.unshift({id:id(),type:'background',preset:p,color,x:0,y:0,w:960,h:540,rot:0,locked:true});selectedId=objs().find(o=>o.type==='background').id;render()}
+function layerMove(d){let arr=objs(),i=arr.findIndex(o=>o.id===selectedId);if(i<0)return;let j=i+d;if(j<0||j>=arr.length)return;[arr[i],arr[j]]=[arr[j],arr[i]];render()}
+function deleteSelectedObject(){let arr=objs(),i=arr.findIndex(o=>o.id===selectedId);if(i<0)return;if(arr[i].type==='background'){toast('Change the background instead of deleting it');return}arr.splice(i,1);selectedId=null;render()}
+$('#actionField').oninput=e=>{panel().action=e.target.value;save()};$('#dialogueField').oninput=e=>{panel().dialogue=e.target.value;save()};$('#durationField').onchange=e=>{panel().duration=Math.max(.5,Math.min(60,+e.target.value||3));save()};$('#cameraField').onchange=e=>{panel().camera=e.target.value;save()};$('#shotSize').onchange=e=>{panel().shotSize=e.target.value;save();renderThumbs()};$('#shotAngle').onchange=e=>{panel().shotAngle=e.target.value;save()};$('#projectTitle').oninput=e=>{project.title=e.target.value;save()};
+$('#stage').addEventListener('pointerdown',e=>{let r=board.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*540/r.height;let o=hitObject(x,y);if(!o){selectedId=null;renderInspector();renderCanvas(ctx,panel(),true);renderLayers();return}selectedId=o.id;let handle=hitHandle(o,x,y);drag={id:o.id,mode:handle||'move',startX:x,startY:y,orig:{x:o.x,y:o.y,w:o.w,h:o.h,rot:o.rot||0}};$('#stage').setPointerCapture(e.pointerId);renderInspector();renderLayers();renderCanvas(ctx,panel(),true)});
+let drag=null;function hitObject(x,y){for(let i=objs().length-1;i>=0;i--){let o=objs()[i],cx=o.x+o.w/2,cy=o.y+o.h/2,rad=-(o.rot||0)*Math.PI/180,dx=x-cx,dy=y-cy,lx=dx*Math.cos(rad)-dy*Math.sin(rad)+o.w/2,ly=dx*Math.sin(rad)+dy*Math.cos(rad)+o.h/2;if(lx>=0&&lx<=o.w&&ly>=0&&ly<=o.h)return o}return null}
+function hitHandle(o,x,y){let cx=o.x+o.w/2,cy=o.y+o.h/2,rad=(o.rot||0)*Math.PI/180,pts=[[-o.w/2,-o.h/2,'nw'],[o.w/2,-o.h/2,'ne'],[-o.w/2,o.h/2,'sw'],[o.w/2,o.h/2,'se'],[0,-o.h/2-31,'rotate']];for(let [px,py,n] of pts){let xx=cx+px*Math.cos(rad)-py*Math.sin(rad),yy=cy+px*Math.sin(rad)+py*Math.cos(rad);if(Math.hypot(x-xx,y-yy)<15)return n}return null}
+$('#stage').addEventListener('pointermove',e=>{if(!drag)return;let r=board.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*540/r.height,o=objs().find(a=>a.id===drag.id);if(!o)return;let dx=x-drag.startX,dy=y-drag.startY,orig=drag.orig;if(drag.mode==='move'){o.x=orig.x+dx;o.y=orig.y+dy}else if(drag.mode==='rotate'){o.rot=Math.atan2(y-(orig.y+orig.h/2),x-(orig.x+orig.w/2))*180/Math.PI+90}else{let w=orig.w+(drag.mode.includes('e')?dx:-dx),h=orig.h+(drag.mode.includes('s')?dy:-dy);o.w=Math.max(25,w);o.h=Math.max(25,h);if(drag.mode.includes('w'))o.x=orig.x+orig.w-o.w;if(drag.mode.includes('n'))o.y=orig.y+orig.h-o.h}renderCanvas(ctx,panel(),true);save()});$('#stage').addEventListener('pointerup',()=>{if(drag){drag=null;renderInspector()}});$('#stage').addEventListener('pointercancel',()=>drag=null);
+function panelCanvas(p,w=1280,h=720){let c=document.createElement('canvas');c.width=w;c.height=h;let g=c.getContext('2d');g.save();g.scale(w/960,h/540);p.objects.forEach(o=>drawObject(g,o));g.restore();return c}
+function downloadData(url,name){let a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}function exportSelectedPNG(){let c=panelCanvas(panel());downloadData(c.toDataURL('image/png'),'framewise-panel-'+(panelIndex+1)+'.png')}
+function exportGridPNG(){let all=project.scenes.flatMap(s=>s.panels.map(p=>({s:s.name,p}))),cols=Math.min(3,Math.max(1,Math.ceil(Math.sqrt(all.length)))),cellW=640,cellH=420,rows=Math.ceil(all.length/cols),c=document.createElement('canvas');c.width=cols*cellW;c.height=rows*cellH;let g=c.getContext('2d');g.fillStyle='#12151b';g.fillRect(0,0,c.width,c.height);all.forEach(({s,p},i)=>{let x=(i%cols)*cellW,y=Math.floor(i/cols)*cellH;g.drawImage(panelCanvas(p,cellW-28,cellH-88),x+14,y+14);g.fillStyle='#fff';g.font='bold 19px system-ui';g.fillText(s+' · '+(i+1),x+14,y+cellH-52);g.font='15px system-ui';g.fillStyle='#ccd2df';g.fillText((p.action||p.dialogue||'').slice(0,60),x+14,y+cellH-24)});downloadData(c.toDataURL('image/png'),'framewise-storyboard.png')}
+function printProject(){let win=window.open('','_blank');if(!win){toast('Allow pop-ups to print');return}let html='<!doctype html><html><head><title>'+esc(project.title)+'</title><style>body{font:14px system-ui;color:#171923;margin:24px}h1{font-size:24px}h2{margin:28px 0 10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.card{break-inside:avoid;border:1px solid #bbb;padding:8px}.card img{width:100%;display:block}.card p{margin:6px 0}.meta{color:#555;font-size:12px}@media print{.card{break-inside:avoid}}</style></head><body><h1>'+esc(project.title)+'</h1>';project.scenes.forEach(s=>{html+='<h2>'+esc(s.name)+'</h2><div class="grid">';s.panels.forEach((p,i)=>{let c=panelCanvas(p,960,540);html+='<div class="card"><img src="'+c.toDataURL()+'"><p><b>Panel '+(i+1)+': '+esc(p.action||'')+'</b></p><p>'+esc(p.dialogue||'')+'</p><p class="meta">'+esc(p.shotSize)+' · '+esc(p.shotAngle)+' · '+p.duration+' sec</p></div>'});html+='</div>'});html+='</body></html>';win.document.open();win.document.write(html);win.document.close();setTimeout(()=>win.print(),400)}
+function downloadProject(){let blob=new Blob([JSON.stringify(project,null,2)],{type:'application/json'});downloadData(URL.createObjectURL(blob),(project.title||'framewise-project').replace(/[^a-z0-9_-]+/gi,'_')+'.json')}
+$('#loadFile').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let p=JSON.parse(await f.text());if(!p.scenes)throw Error('Invalid project');project=normalizeProject(p);sceneIndex=panelIndex=0;selectedId=null;render();toast('Project loaded')}catch(err){toast('Could not load that project JSON')}e.target.value=''};
+function parseScript(){let lines=$('#scriptBox').value.split(/\r?\n/).map(x=>x.trim()).filter(x=>/^PANEL\s*:/i.test(x));if(!lines.length){toast('Add one or more lines starting with PANEL:');return}lines.forEach(line=>{let p=newPanel();p.action=line.replace(/^PANEL\s*:/i,'').trim();scene().panels.push(p)});panelIndex=scene().panels.length-1;selectedId=null;render();toast(lines.length+' panel'+(lines.length===1?'':'s')+' created')}
+function allRows(){return project.scenes.flatMap(s=>s.panels.map((p,i)=>({scene:s,p,index:i})))}function toggleShotTable(){let el=$('#shotTable');el.classList.toggle('open');if(el.classList.contains('open'))renderTable()}
+function renderTable(){let rows=allRows(),html='<table><thead><tr><th>Scene</th><th>Panel</th><th>Shot size</th><th>Angle</th><th>Dialogue</th><th>Action</th><th>Duration</th></tr></thead><tbody>';rows.forEach(({scene:s,p,index})=>{html+='<tr><td>'+esc(s.name)+'</td><td><button class="tiny" onclick="jumpToPanel(\''+s.id+'\',\''+p.id+'\')">'+(index+1)+'</button></td><td><select onchange="updateRow(\''+p.id+'\',\'shotSize\',this.value)">'+['Extreme close-up','Close-up','Medium','Wide','Extreme wide','Two-shot','Insert'].map(v=>'<option '+(v===(p.shotSize||'Medium')?'selected':'')+'>'+v+'</option>').join('')+'</select></td><td><select onchange="updateRow(\''+p.id+'\',\'shotAngle\',this.value)">'+['Eye-level','High','Low','Over-the-shoulder','POV','Dutch','Aerial','Top-down'].map(v=>'<option '+(v===(p.shotAngle||'Eye-level')?'selected':'')+'>'+v+'</option>').join('')+'</select></td><td><input value="'+esc(p.dialogue)+'" onchange="updateRow(\''+p.id+'\',\'dialogue\',this.value)"></td><td><input value="'+esc(p.action)+'" onchange="updateRow(\''+p.id+'\',\'action\',this.value)"></td><td><input type="number" min=".5" step=".5" value="'+(p.duration||3)+'" onchange="updateRow(\''+p.id+'\',\'duration\',+this.value)"></td></tr>'});$('#tableContent').innerHTML=html+'</tbody></table>'}
+function findPanel(pid){for(let si=0;si<project.scenes.length;si++){let pi=project.scenes[si].panels.findIndex(p=>p.id===pid);if(pi>=0)return {si,pi,p:project.scenes[si].panels[pi]}}}function updateRow(pid,key,val){let f=findPanel(pid);if(f)f.p[key]=val;save()}function jumpToPanel(sid,pid){sceneIndex=project.scenes.findIndex(s=>s.id===sid);panelIndex=scene().panels.findIndex(p=>p.id===pid);selectedId=null;$('#shotTable').classList.remove('open');render()}
+function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}function exportCSV(){let rows=[['Scene','Panel','Shot size','Camera angle','Dialogue','Action','Duration (seconds)','Camera motion']];project.scenes.forEach(s=>s.panels.forEach((p,i)=>rows.push([s.name,i+1,p.shotSize,p.shotAngle,p.dialogue,p.action,p.duration,p.camera])));let csv='\ufeff'+rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8'});downloadData(URL.createObjectURL(blob),'framewise-shot-table.csv')}
+function openPlayer(){$('#playerModal').classList.add('show');playAnimatic()};function closePlayer(){stopPlayback();$('#playerModal').classList.remove('show')};function stopPlayback(){playToken++;if(mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop();$('#playerStatus').textContent='Stopped'}
+function drawPlaybackFrame(c,p,progress){let src=panelCanvas(p,1280,720),g=c.getContext('2d'),z=1,x=0,y=0;if(p.camera==='zoomIn')z=1+.12*progress;if(p.camera==='zoomOut')z=1.12-.12*progress;if(p.camera==='panLeft')x=-100*progress;if(p.camera==='panRight')x=100*progress;g.clearRect(0,0,c.width,c.height);g.save();g.translate(c.width/2,c.height/2);g.scale(z,z);g.translate(-c.width/2+x,-c.height/2+y);g.drawImage(src,0,0);g.restore();g.fillStyle='#080a0db8';g.fillRect(0,630,1280,90);g.fillStyle='#fff';g.font='bold 28px system-ui';g.textAlign='center';wrapText(g,p.dialogue||p.action||'',640,679,1120,32,2);g.textAlign='left'}
+async function playAnimatic(record=false){let token=++playToken,c=$('#playerCanvas'),g=c.getContext('2d'),panels=project.scenes.flatMap(s=>s.panels.map(p=>({p,s:s.name})));if(!panels.length)return;$('#playerStatus').textContent=record?'Recording WebM…':'Playing';if(record){if(!c.captureStream||!window.MediaRecorder){toast('WebM recording is not supported in this browser');return}try{let stream=c.captureStream(30),opts=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?{mimeType:'video/webm;codecs=vp9'}:{mimeType:'video/webm'};mediaChunks=[];mediaRecorder=new MediaRecorder(stream,opts);mediaRecorder.ondataavailable=e=>{if(e.data.size)mediaChunks.push(e.data)};mediaRecorder.onstop=()=>{let b=new Blob(mediaChunks,{type:'video/webm'});downloadData(URL.createObjectURL(b),'framewise-animatic.webm');$('#playerStatus').textContent='WebM exported'};mediaRecorder.start()}catch(e){toast('Could not start WebM recording');return}}
+ for(let i=0;i<panels.length&&token===playToken;i++){let {p,s}=panels[i],start=performance.now(),duration=Math.max(.5,Number(p.duration)||3)*1000;$('#playerLabel').textContent=s+' · Panel '+(i+1)+' of '+panels.length;await new Promise(resolve=>{function step(now){if(token!==playToken){resolve();return}let q=Math.min(1,(now-start)/duration);drawPlaybackFrame(c,p,q);if(q<1)requestAnimationFrame(step);else resolve()}requestAnimationFrame(step)})}if(token===playToken){$('#playerStatus').textContent='Playback complete';if(record&&mediaRecorder&&mediaRecorder.state!=='inactive')mediaRecorder.stop()}}
+function recordAnimatic(){playAnimatic(true)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#playerModal').classList.contains('show'))closePlayer();if($('#shotTable').classList.contains('open'))$('#shotTable').classList.remove('open');return}if(e.target.matches('input,textarea,select,[contenteditable=true]'))return;let k=e.key.toLowerCase();if(k==='n'){e.preventDefault();addPanel()}if(k==='e'){e.preventDefault();exportSelectedPNG()}if(k==='p'){e.preventDefault();openPlayer()}});
+window.addEventListener('beforeunload',()=>{try{localStorage.setItem(STORE,JSON.stringify(project))}catch(e){}});render();
 </script>
-</body>
-</html>
+</body></html>
